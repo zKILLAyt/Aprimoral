@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parte Diária da Obra</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    h2 { margin-bottom: 20px; }
+    input, select, button {
+      padding: 6px; margin: 5px; border-radius: 4px; border: 1px solid #ccc;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
+    th { background: #dcdcdc; }
+    .form-container { background: #fff; padding: 15px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .btn-delete { color: red; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>🛠️ Parte Diária da Obra</h2>
+
+  <div class="form-container">
+    <label>Data: <input type="date" id="data" required></label>
+    <label>Prefixo: <input type="text" id="prefixo" required></label>
+    <label>Turno:
+      <select id="turno">
+        <option value="Diurno">Diurno</option>
+        <option value="Noturno">Noturno</option>
+      </select>
+    </label>
+    <br>
+    <label>Horímetro Inicial: <input type="number" id="imetro" required></label>
+    <label>Horímetro Final: <input type="number" id="rimetro" required></label>
+    <label>Observações: <input type="text" id="obs"></label>
+    <button onclick="adicionar()">Adicionar</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Prefixo</th>
+        <th>Turno</th>
+        <th>IMETRO</th>
+        <th>RIMETRO</th>
+        <th>Horas Trabalhadas</th>
+        <th>Observações</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-registros"></tbody>
+  </table>
+
+  <script>
+    let registros = JSON.parse(localStorage.getItem("registrosObra")) || [];
+
+    function salvarRegistros() {
+      localStorage.setItem("registrosObra", JSON.stringify(registros));
+    }
+
+    function renderizarTabela() {
+      const tbody = document.getElementById("tabela-registros");
+      tbody.innerHTML = "";
+      registros.forEach((reg, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${reg.data}</td>
+          <td>${reg.prefixo}</td>
+          <td>${reg.turno}</td>
+          <td>${reg.imetro}</td>
+          <td>${reg.rimetro}</td>
+          <td>${(reg.rimetro - reg.imetro).toFixed(2)}</td>
+          <td>${reg.obs}</td>
+          <td><span class="btn-delete" onclick="excluir(${index})">🗑️</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function adicionar() {
+      const data = document.getElementById("data").value;
+      const prefixo = document.getElementById("prefixo").value;
+      const turno = document.getElementById("turno").value;
+      const imetro = parseFloat(document.getElementById("imetro").value);
+      const rimetro = parseFloat(document.getElementById("rimetro").value);
+      const obs = document.getElementById("obs").value;
+
+      if (!data || !prefixo || isNaN(imetro) || isNaN(rimetro)) {
+        alert("Preencha todos os campos obrigatórios!");
+        return;
+      }
+
+      registros.push({ data, prefixo, turno, imetro, rimetro, obs });
+      salvarRegistros();
+      renderizarTabela();
+
+      // Limpa os campos
+      document.getElementById("data").value = "";
+      document.getElementById("prefixo").value = "";
+      document.getElementById("imetro").value = "";
+      document.getElementById("rimetro").value = "";
+      document.getElementById("obs").value = "";
+    }
+
+    function excluir(index) {
+      if (confirm("Tem certeza que deseja excluir este registro?")) {
+        registros.splice(index, 1);
+        salvarRegistros();
+        renderizarTabela();
+      }
+    }
+
+    // Inicializa
+    renderizarTabela();
+  </script>
+
+</body>
+</html>
