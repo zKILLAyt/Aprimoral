@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parte Diária da Obra</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Parte Diária da Obra</h1>
+    <button onclick="logout()" class="logout-btn">Sair</button>
+
+    <form id="registroForm">
+      <input type="date" id="data" required />
+      <input type="text" id="prefixo" placeholder="Prefixo" required />
+      <select id="turno" required>
+        <option value="">Selecione o turno</option>
+        <option value="Diurno">Diurno</option>
+        <option value="Noturno">Noturno</option>
+      </select>
+      <input type="number" id="inicio" placeholder="Horímetro Inicial" required />
+      <input type="number" id="fim" placeholder="Horímetro Final" required />
+      <input type="text" id="obs" placeholder="Observação" />
+      <button type="submit">Registrar</button>
+    </form>
+
+    <div class="filtros">
+      <h3>Filtros</h3>
+      <input type="date" id="filtroData" />
+      <select id="filtroTurno">
+        <option value="">Todos os turnos</option>
+        <option value="Diurno">Diurno</option>
+        <option value="Noturno">Noturno</option>
+      </select>
+      <input type="text" id="filtroPrefixo" placeholder="Prefixo" />
+      <button onclick="filtrarRegistros()">Filtrar</button>
+      <button onclick="limparFiltros()">Limpar</button>
+    </div>
+
+    <div class="acoes">
+      <button onclick="exportarExcel()">Exportar Excel</button>
+      <button onclick="gerarGraficos()">Gráficos</button>
+      <button onclick="gerarRelatorioMensal()">Relatório PDF</button>
+    </div>
+
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Prefixo</th>
+          <th>Turno</th>
+          <th>Início</th>
+          <th>Fim</th>
+          <th>Horas</th>
+          <th>Observação</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="firebase.js"></script>
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+  <script src="relatorio.js"></script>
+</body>
+</html>
