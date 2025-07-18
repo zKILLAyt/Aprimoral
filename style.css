@@ -1,0 +1,109 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Login Container */
+.login-container {
+  background: #fff;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 1.5rem;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 0.9rem;
+  margin: 0.5rem 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 0.9rem;
+  background: #1e88e5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.3s ease;
+}
+
+.login-container button:hover {
+  background: #1565c0;
+}
+
+/* Estilos futuros para dashboard */
+.dashboard {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+/* Tabela */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+table th,
+table td {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+table th {
+  background-color: #1976d2;
+  color: #fff;
+}
+
+/* Botões secundários */
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #1976d2;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background: #1565c0;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+  .login-container {
+    padding: 1.5rem;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+}
