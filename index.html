@@ -3,39 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <title>Parte Diária da Obra</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
   <style>
     body { font-family: Arial; padding: 20px; background: #f4f4f4; }
-    h2 { margin-bottom: 20px; }
+    .hidden { display: none; }
     input, select, button {
       padding: 6px; margin: 5px; border-radius: 4px; border: 1px solid #ccc;
     }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { padding: 8px; border: 1px solid #ccc; text-align: center; }
     th { background: #dcdcdc; }
-    .form-container { background: #fff; padding: 15px; border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .form-container, .login-container {
+      background: #fff; padding: 15px; border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px;
+    }
     .btn-delete { color: red; cursor: pointer; }
   </style>
 </head>
 <body>
 
-  <h2>🛠️ Parte Diária da Obra</h2>
+<h2>☁️ Parte Diária da Obra</h2>
 
+<!-- 🔐 Login -->
+<div class="login-container" id="login-section">
+  <h3>Login</h3>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="senha" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+  <button onclick="registrar()">Cadastrar</button>
+</div>
+
+<!-- ✅ App -->
+<div id="app-section" class="hidden">
+  <button onclick="logout()">Sair</button>
+
+  <!-- Filtros -->
+  <div>
+    <label>Filtrar por Data: <input type="date" id="filtro-data"></label>
+    <label>Prefixo: <input type="text" id="filtro-prefixo"></label>
+    <label>Turno:
+      <select id="filtro-turno">
+        <option value="">Todos</option>
+        <option value="Diurno">Diurno</option>
+        <option value="Noturno">Noturno</option>
+      </select>
+    </label>
+    <button onclick="carregarRegistros()">Filtrar</button>
+  </div>
+
+  <!-- Formulário -->
   <div class="form-container">
-    <label>Data: <input type="date" id="data" required></label>
-    <label>Prefixo: <input type="text" id="prefixo" required></label>
+    <label>Data: <input type="date" id="data"></label>
+    <label>Prefixo: <input type="text" id="prefixo"></label>
     <label>Turno:
       <select id="turno">
         <option value="Diurno">Diurno</option>
         <option value="Noturno">Noturno</option>
       </select>
-    </label>
-    <br>
-    <label>Horímetro Inicial: <input type="number" id="imetro" required></label>
-    <label>Horímetro Final: <input type="number" id="rimetro" required></label>
+    </label><br>
+    <label>IMETRO: <input type="number" id="imetro"></label>
+    <label>RIMETRO: <input type="number" id="rimetro"></label>
     <label>Observações: <input type="text" id="obs"></label>
-    <button onclick="adicionar()">Adicionar</button>
+    <button onclick="adicionarRegistro()">Salvar</button>
   </div>
 
+  <!-- Tabela -->
   <table>
     <thead>
       <tr>
@@ -44,76 +81,130 @@
         <th>Turno</th>
         <th>IMETRO</th>
         <th>RIMETRO</th>
-        <th>Horas Trabalhadas</th>
+        <th>Horas</th>
         <th>Observações</th>
         <th>Ações</th>
       </tr>
     </thead>
-    <tbody id="tabela-registros"></tbody>
+    <tbody id="tabela"></tbody>
   </table>
+</div>
 
-  <script>
-    let registros = JSON.parse(localStorage.getItem("registrosObra")) || [];
+<script>
+  // Firebase config (sua config)
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-nZdYV7ijYhZ5hRXJXsEdMpgDpPiorec",
+    authDomain: "project-pd-s.firebaseapp.com",
+    projectId: "project-pd-s",
+    storageBucket: "project-pd-s.firebasestorage.app",
+    messagingSenderId: "852298305347",
+    appId: "1:852298305347:web:c510579f96cf6d177da9f6",
+    measurementId: "G-YZ0K7RDLGY"
+  };
 
-    function salvarRegistros() {
-      localStorage.setItem("registrosObra", JSON.stringify(registros));
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const colecao = db.collection("partes-diarias");
+
+  // Login & Autenticação
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('app-section').classList.remove('hidden');
+      carregarRegistros();
+    } else {
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('app-section').classList.add('hidden');
+    }
+  });
+
+  function login() {
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+    auth.signInWithEmailAndPassword(email, senha)
+      .catch(e => alert("Erro no login: " + e.message));
+  }
+
+  function registrar() {
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+    auth.createUserWithEmailAndPassword(email, senha)
+      .then(() => alert("Usuário registrado!"))
+      .catch(e => alert("Erro ao cadastrar: " + e.message));
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  // CRUD
+  function adicionarRegistro() {
+    const data = document.getElementById("data").value;
+    const prefixo = document.getElementById("prefixo").value;
+    const turno = document.getElementById("turno").value;
+    const imetro = parseFloat(document.getElementById("imetro").value);
+    const rimetro = parseFloat(document.getElementById("rimetro").value);
+    const obs = document.getElementById("obs").value;
+
+    if (!data || !prefixo || isNaN(imetro) || isNaN(rimetro)) {
+      alert("Preencha todos os campos obrigatórios!");
+      return;
     }
 
-    function renderizarTabela() {
-      const tbody = document.getElementById("tabela-registros");
-      tbody.innerHTML = "";
-      registros.forEach((reg, index) => {
+    colecao.add({ data, prefixo, turno, imetro, rimetro, obs })
+      .then(() => {
+        alert("Registro adicionado!");
+        carregarRegistros();
+        limparCampos();
+      });
+  }
+
+  function carregarRegistros() {
+    let query = colecao;
+
+    const filtroData = document.getElementById("filtro-data").value;
+    const filtroPrefixo = document.getElementById("filtro-prefixo").value.toUpperCase();
+    const filtroTurno = document.getElementById("filtro-turno").value;
+
+    if (filtroData) query = query.where("data", "==", filtroData);
+    query.get().then(snapshot => {
+      const tabela = document.getElementById("tabela");
+      tabela.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const d = doc.data();
+
+        if (filtroTurno && d.turno !== filtroTurno) return;
+        if (filtroPrefixo && !d.prefixo.toUpperCase().includes(filtroPrefixo)) return;
+
+        const horas = (d.rimetro - d.imetro).toFixed(2);
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${reg.data}</td>
-          <td>${reg.prefixo}</td>
-          <td>${reg.turno}</td>
-          <td>${reg.imetro}</td>
-          <td>${reg.rimetro}</td>
-          <td>${(reg.rimetro - reg.imetro).toFixed(2)}</td>
-          <td>${reg.obs}</td>
-          <td><span class="btn-delete" onclick="excluir(${index})">🗑️</span></td>
+          <td>${d.data}</td>
+          <td>${d.prefixo}</td>
+          <td>${d.turno}</td>
+          <td>${d.imetro}</td>
+          <td>${d.rimetro}</td>
+          <td>${horas}</td>
+          <td>${d.obs || ""}</td>
+          <td><span class="btn-delete" onclick="excluirRegistro('${doc.id}')">🗑️</span></td>
         `;
-        tbody.appendChild(tr);
+        tabela.appendChild(tr);
       });
+    });
+  }
+
+  function excluirRegistro(id) {
+    if (confirm("Excluir este registro?")) {
+      colecao.doc(id).delete().then(carregarRegistros);
     }
+  }
 
-    function adicionar() {
-      const data = document.getElementById("data").value;
-      const prefixo = document.getElementById("prefixo").value;
-      const turno = document.getElementById("turno").value;
-      const imetro = parseFloat(document.getElementById("imetro").value);
-      const rimetro = parseFloat(document.getElementById("rimetro").value);
-      const obs = document.getElementById("obs").value;
-
-      if (!data || !prefixo || isNaN(imetro) || isNaN(rimetro)) {
-        alert("Preencha todos os campos obrigatórios!");
-        return;
-      }
-
-      registros.push({ data, prefixo, turno, imetro, rimetro, obs });
-      salvarRegistros();
-      renderizarTabela();
-
-      // Limpa os campos
-      document.getElementById("data").value = "";
-      document.getElementById("prefixo").value = "";
-      document.getElementById("imetro").value = "";
-      document.getElementById("rimetro").value = "";
-      document.getElementById("obs").value = "";
-    }
-
-    function excluir(index) {
-      if (confirm("Tem certeza que deseja excluir este registro?")) {
-        registros.splice(index, 1);
-        salvarRegistros();
-        renderizarTabela();
-      }
-    }
-
-    // Inicializa
-    renderizarTabela();
-  </script>
+  function limparCampos() {
+    ["data", "prefixo", "imetro", "rimetro", "obs"].forEach(id => document.getElementById(id).value = "");
+  }
+</script>
 
 </body>
 </html>
